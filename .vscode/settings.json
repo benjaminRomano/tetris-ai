@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "/home/bromano/software/anaconda2/bin/python",
+    "python.autoComplete.extraPaths": [
+        "${env.SPARK_HOME}/python",
+        "${env.SPARK_HOME}/python/pyspark"
+    ],
+    "python.linting.enabled": false
+}
