@@ -8,13 +8,14 @@ import pygame
 import sys
 from copy import deepcopy
 from pygame.locals import *
+from hueristic_ai import HueristicAI
 
 FPS = 25
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
 BOXSIZE = 20
-BOARDWIDTH = 10
-BOARDHEIGHT = 20
+BOARDWIDTH = 6
+BOARDHEIGHT = 12
 BLANK = '.'
 
 MOVESIDEWAYSFREQ = 0.15
@@ -44,121 +45,59 @@ COLORS = (BLUE,      GREEN,      RED,      YELLOW)
 LIGHTCOLORS = (LIGHTBLUE, LIGHTGREEN, LIGHTRED, LIGHTYELLOW)
 assert len(COLORS) == len(LIGHTCOLORS)  # each color must have light color
 
-TEMPLATEWIDTH = 5
-TEMPLATEHEIGHT = 5
+TEMPLATEWIDTH = 2
+TEMPLATEHEIGHT = 2
 
-S_SHAPE_TEMPLATE = [['..OO.',
-                     '.OO..',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..OO.',
-                     '...O.',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_1 = [['O.',
+                     '..'],
+                    ['..',
+                     'O.'],
+                    ['..',
+                     '.O'],
+                    ['.O',
+                     '..']]
 
-Z_SHAPE_TEMPLATE = [['.OO..',
-                     '..OO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '.OO..',
-                     '.O...',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_2 = [['OO',
+                     'OO']]
 
-I_SHAPE_TEMPLATE = [['..O..',
-                     '..O..',
-                     '..O..',
-                     '..O..',
-                     '.....'],
-                    ['OOOO.',
-                     '.....',
-                     '.....',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_3 = [['OO',
+                     '..'],
+                    ['O.',
+                     'O.'],
+                    ['..',
+                     'OO'],
+                    ['.O',
+                     '.O']]
 
-O_SHAPE_TEMPLATE = [['.OO..',
-                     '.OO..',
-                     '.....',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_4 = [['.O',
+                     'O.'],
+                    ['O.',
+                     '.O']]
 
-J_SHAPE_TEMPLATE = [['.O...',
-                     '.OOO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..OO.',
-                     '..O..',
-                     '..O..',
-                     '.....',
-                     '.....'],
-                    ['.OOO.',
-                     '...O.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..O..',
-                     '.OO..',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_5 = [['OO',
+                     'O.'],
+                    ['O.',
+                     'OO'],
+                    ['.O',
+                     'OO'],
+                    ['OO',
+                     '.O']]
 
-L_SHAPE_TEMPLATE = [['...O.',
-                     '.OOO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..O..',
-                     '..OO.',
-                     '.....',
-                     '.....'],
-                    ['.OOO.',
-                     '.O...',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['.OO..',
-                     '..O..',
-                     '..O..',
-                     '.....',
-                     '.....']]
 
-T_SHAPE_TEMPLATE = [['..O..',
-                     '.OOO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..OO.',
-                     '..O..',
-                     '.....',
-                     '.....'],
-                    ['.OOO.',
-                     '..O..',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '.OO..',
-                     '..O..',
-                     '.....',
-                     '.....']]
-
-PIECES = {'S': S_SHAPE_TEMPLATE,
-          'Z': Z_SHAPE_TEMPLATE,
-          'J': J_SHAPE_TEMPLATE,
-          'L': L_SHAPE_TEMPLATE,
-          'I': I_SHAPE_TEMPLATE,
-          'O': O_SHAPE_TEMPLATE,
-          'T': T_SHAPE_TEMPLATE}
-
+PIECES = {'1': SHAPE_TEMPLATE_1,
+          '2': SHAPE_TEMPLATE_2,
+          '3': SHAPE_TEMPLATE_3,
+          '4': SHAPE_TEMPLATE_4,
+          '5': SHAPE_TEMPLATE_5}
 
 class GameState:
+
+    """
+
+        Game state code
+
+    """
+
     def __init__(self):
         global FPSCLOCK, DISPLAYSURF, BASICFONT, BIGFONT
         pygame.init()
@@ -173,9 +112,6 @@ class GameState:
 
         # setup variables for the start of the game
         self.board = self.getBlankBoard()
-        self.lastMoveDownTime = time.time()
-        self.lastMoveSidewaysTime = time.time()
-        self.lastFallTime = time.time()
         self.movingDown = False  # note: there is no movingUp variable
         self.movingLeft = False
         self.movingRight = False
@@ -187,15 +123,13 @@ class GameState:
         self.fallingPiece = self.getNewPiece()
         self.nextPiece = self.getNewPiece()
 
-        self.frame_step([1, 0, 0, 0, 0, 0])
+        self.frame_step(0)
 
         pygame.display.update()
 
     def reinit(self):
+
         self.board = self.getBlankBoard()
-        self.lastMoveDownTime = time.time()
-        self.lastMoveSidewaysTime = time.time()
-        self.lastFallTime = time.time()
         self.movingDown = False  # note: there is no movingUp variable
         self.movingLeft = False
         self.movingRight = False
@@ -207,11 +141,46 @@ class GameState:
         self.fallingPiece = self.getNewPiece()
         self.nextPiece = self.getNewPiece()
 
-        self.frame_step([1, 0, 0, 0, 0, 0])
+        self.frame_step(0)
 
         pygame.display.update()
 
-    def get_board_state(self):
+    def calculateLevelAndFallFreq(self):
+        # Based on the self.score, return the self.level the player is on and
+        # how many seconds pass until a falling piece falls one space.
+        self.level = min(int(self.lines / 10) + 1, 10)
+        self.fallFreq = 0.27 - (self.level * 0.02)
+        return self.level, self.fallFreq
+
+    """ 
+    
+    Deep Q-Learning Code
+
+    """
+
+    def action_to_input(self, action):
+        if action == "moveLeft":
+            return 1
+        elif action == "moveRight":
+            return 3
+        elif action == "rotateForward":
+            return 2
+        elif action == "rotateBackward":
+            return 5
+        elif action == "drop":
+            return 4
+        elif action == "nothing":
+            return 0
+
+    def display(self, board):
+        for y in range(BOARDHEIGHT):
+            items = []
+            for x in range(BOARDWIDTH):
+                items.append(board[x][y])
+
+            print "".join(map(str, items))
+
+    def get_board_image(self):
         new_board = deepcopy(self.board)
 
         for x in range(BOARDWIDTH):
@@ -230,86 +199,46 @@ class GameState:
         return new_board
 
     def frame_step(self, input):
-        self.movingLeft = False
-        self.movingRight = False
-
         reward = 0
         terminal = False
 
-        # none is 100000, left is 010000, up is 001000, right is 000100, space
-        # is 000010, q is 000001
         if self.fallingPiece == None:
             # No falling piece in play, so start a new piece at the top
             self.fallingPiece = self.nextPiece
             self.nextPiece = self.getNewPiece()
-            self.lastFallTime = time.time()  # reset self.lastFallTime
 
-            if not self.isValidPosition():
+            # Game over
+            if not self.isValidPosition(self.board, self.fallingPiece):
                 terminal = True
 
-                filled_in_board = self.get_board_state()
+                board_image = self.get_board_image()
+
+                reward = -5
                 
                 self.reinit()
-                return filled_in_board, reward, terminal
+                return board_image, reward, terminal
 
-        # moving the piece sideways
-        if (input == 1) and self.isValidPosition(adjX=-1):
-            self.fallingPiece['x'] -= 1
-            self.movingLeft = True
-            self.movingRight = False
-            self.lastMoveSidewaysTime = time.time()
-
-        elif (input == 3) and self.isValidPosition(adjX=1):
-            self.fallingPiece['x'] += 1
-            self.movingRight = True
-            self.movingLeft = False
-            self.lastMoveSidewaysTime = time.time()
-
-        # rotating the piece (if there is room to rotate)
-        elif (input == 2):
-            self.fallingPiece['rotation'] = (
-                self.fallingPiece['rotation'] + 1) % len(PIECES[self.fallingPiece['shape']])
-            if not self.isValidPosition():
-                self.fallingPiece['rotation'] = (
-                    self.fallingPiece['rotation'] - 1) % len(PIECES[self.fallingPiece['shape']])
-
-        elif (input == 5):  # rotate the other direction
-            self.fallingPiece['rotation'] = (
-                self.fallingPiece['rotation'] - 1) % len(PIECES[self.fallingPiece['shape']])
-            if not self.isValidPosition():
-                self.fallingPiece['rotation'] = (
-                    self.fallingPiece['rotation'] + 1) % len(PIECES[self.fallingPiece['shape']])
-
-        # move the current piece all the way down
+        if input == 1:
+            self.moveLeft(self.board, self.fallingPiece)
+        elif input == 3:
+            self.moveRight(self.board, self.fallingPiece)
+        elif input == 2:
+            self.rotateForward(self.board, self.fallingPiece)
+        elif input == 5:
+            self.rotateBackward(self.board, self.fallingPiece)
         elif (input == 4):
             self.movingDown = False
             self.movingLeft = False
             self.movingRight = False
-            for i in range(1, BOARDHEIGHT):
-                if not self.isValidPosition(adjY=i):
-                    break
-            self.fallingPiece['y'] += i - 1
 
-        # handle moving the piece because of user input
-        if (self.movingLeft or self.movingRight):
-            if self.movingLeft and self.isValidPosition(adjX=-1):
-                self.fallingPiece['x'] -= 1
-            elif self.movingRight and self.isValidPosition(adjX=1):
-                self.fallingPiece['x'] += 1
-            self.lastMoveSidewaysTime = time.time()
+            self.drop(self.board, self.fallingPiece)
 
-        if self.movingDown:
-            self.fallingPiece['y'] += 1
-            self.lastMoveDownTime = time.time()
-
-        # let the piece fall if it is time to fall
-        # see if the piece has landed
+        # Add to board if it is "fallen"
         cleared = 0
-        if not self.isValidPosition(adjY=1):
-            # falling piece has landed, set it on the self.board
-            self.addToBoard()
+        if not self.isValidPosition(self.board, self.fallingPiece, adjY=1):
+            self.addToBoard(self.board, self.fallingPiece)
 
-            cleared = self.removeCompleteLines()
+            cleared = self.removeCompleteLines(self.board)
             if cleared > 0:
                 if cleared == 1:
                     self.score += 40 * self.level
@@ -325,8 +254,8 @@ class GameState:
             self.lines += cleared
             self.total_lines += cleared
 
-            reward = self.height - self.getHeight()
-            self.height = self.getHeight()
+            reward = self.height - self.get_aggregate_height(self.board) + cleared
+            self.height = self.get_aggregate_height(self.board)
 
             self.level, self.fallFreq = self.calculateLevelAndFallFreq()
             self.fallingPiece = None
@@ -348,50 +277,55 @@ class GameState:
         if cleared > 0:
             reward = 100 * cleared
 
-        filled_in_board = self.get_board_state()
-        return filled_in_board, reward, terminal
+        board_image = self.get_board_image()
+        return board_image, reward, terminal
 
-    def getHeight(self):
-        stack_height = 0
+    """
+
+    BOARD OPERATIONS
+
+    """
+
+    def moveLeft(self, board, fallingPiece):
+        if not self.isValidPosition(board, fallingPiece, adjX=-1):
+            return False
+        
+        fallingPiece['x'] -= 1
+        return True
+
+    def moveRight(self, board, fallingPiece):
+        if not self.isValidPosition(board, fallingPiece, adjX=1):
+            return False
+
+        fallingPiece['x'] += 1
+        return True
+
+    def drop(self, board, fallingPiece):
         for i in range(0, BOARDHEIGHT):
-            blank_row = True
-            for j in range(0, BOARDWIDTH):
-                if self.board[j][i] != '.':
-                    blank_row = False
-            if not blank_row:
-                stack_height = BOARDHEIGHT - i
+            if not self.isValidPosition(board, fallingPiece, adjY=i):
                 break
-        return stack_height
+        fallingPiece['y'] += i - 1
 
-    # TODO: Modify this to take in more factors then height. (Rougness)
-    def getReward(self):
-        stack_height = None
-        num_blocks = 0
-        for i in range(0, BOARDHEIGHT):
-            blank_row = True
-            for j in range(0, BOARDWIDTH):
-                if self.board[j][i] != '.':
-                    num_blocks += 1
-                    blank_row = False
-            if not blank_row and stack_height is None:
-                stack_height = BOARDHEIGHT - i
+    def rotateForward(self, board, fallingPiece):
+        fallingPiece['rotation'] = (
+            fallingPiece['rotation'] + 1) % len(PIECES[fallingPiece['shape']])
 
-        if stack_height is None:
-            return BOARDHEIGHT
-        else:
-            return BOARDHEIGHT - stack_height
-            return float(num_blocks) / float(stack_height * BOARDWIDTH)
+        if not self.isValidPosition(board, fallingPiece):
+            fallingPiece['rotation'] = (
+                fallingPiece['rotation'] - 1) % len(PIECES[fallingPiece['shape']])
+            return False
 
-    def makeTextObjs(self, text, font, color):
-        surf = font.render(text, True, color)
-        return surf, surf.get_rect()
+        return True
 
-    def calculateLevelAndFallFreq(self):
-        # Based on the self.score, return the self.level the player is on and
-        # how many seconds pass until a falling piece falls one space.
-        self.level = min(int(self.lines / 10) + 1, 10)
-        self.fallFreq = 0.27 - (self.level * 0.02)
-        return self.level, self.fallFreq
+    def rotateBackward(self, board, fallingPiece):
+        fallingPiece['rotation'] = (
+            fallingPiece['rotation'] - 1) % len(PIECES[fallingPiece['shape']])
+        if not self.isValidPosition(board, fallingPiece):
+            fallingPiece['rotation'] = (
+                fallingPiece['rotation'] + 1) % len(PIECES[fallingPiece['shape']])
+            return False
+        
+        return True
 
     def getNewPiece(self):
         # return a random new piece in a random rotation and color
@@ -399,62 +333,65 @@ class GameState:
         newPiece = {'shape': shape,
                     'rotation': random.randint(0, len(PIECES[shape]) - 1),
                     'x': int(BOARDWIDTH / 2) - int(TEMPLATEWIDTH / 2),
-                    'y': 0,  # start it above the self.board (i.e. less than 0)
-                    'color': random.randint(0, len(COLORS) - 1)}
+                    'y': -1,  # start it above the self.board (i.e. less than 0)
+                    'color': random.randint(0, len(COLORS) - 1),
+                    'num_rotations': len(PIECES[shape])}
+        
         return newPiece
 
-    def addToBoard(self):
-        # fill in the self.board based on piece's location, shape, and rotation
+    def addToBoard(self, board, fallingPiece):
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
-                if PIECES[self.fallingPiece['shape']][self.fallingPiece['rotation']][y][x] != BLANK:
-                    self.board[x + self.fallingPiece['x']][y +
-                                                           self.fallingPiece['y']] = self.fallingPiece['color']
+                if PIECES[fallingPiece['shape']][fallingPiece['rotation']][y][x] != BLANK:
+                    board[x + fallingPiece['x']][y + fallingPiece['y']] = fallingPiece['color']
 
     def getBlankBoard(self):
         # create and return a new blank self.board data structure
-        self.board = []
+        board = []
         for i in range(BOARDWIDTH):
-            self.board.append([BLANK] * BOARDHEIGHT)
-        return self.board
+            board.append([BLANK] * BOARDHEIGHT)
+        return board
 
     def isOnBoard(self, x, y):
         return x >= 0 and x < BOARDWIDTH and y < BOARDHEIGHT
 
-    def isValidPosition(self, adjX=0, adjY=0):
+    def isValidPosition(self, board, fallingPiece, adjX=0, adjY=0):
         # Return True if the piece is within the self.board and not colliding
         for x in range(TEMPLATEWIDTH):
             for y in range(TEMPLATEHEIGHT):
-                isAboveBoard = y + self.fallingPiece['y'] + adjY < 0
-                if isAboveBoard or PIECES[self.fallingPiece['shape']][self.fallingPiece['rotation']][y][x] == BLANK:
-                    continue
-                if not self.isOnBoard(x + self.fallingPiece['x'] + adjX, y + self.fallingPiece['y'] + adjY):
+                isAboveBoard = y + fallingPiece['y'] + adjY < 0
+
+                if isAboveBoard and (x + fallingPiece['x'] + adjX < 0 or x + fallingPiece['x'] + adjX >= BOARDWIDTH):
                     return False
-                if self.board[x + self.fallingPiece['x'] + adjX][y + self.fallingPiece['y'] + adjY] != BLANK:
+
+                if isAboveBoard or PIECES[fallingPiece['shape']][fallingPiece['rotation']][y][x] == BLANK:
+                    continue
+                if not self.isOnBoard(x + fallingPiece['x'] + adjX, y + fallingPiece['y'] + adjY):
+                    return False
+                if board[x + fallingPiece['x'] + adjX][y + fallingPiece['y'] + adjY] != BLANK:
                     return False
         return True
 
-    def isCompleteLine(self, y):
-        # Return True if the line filled with boxes with no gaps.
+    def isCompleteLine(self, board, y):
         for x in range(BOARDWIDTH):
-            if self.board[x][y] == BLANK:
+            if board[x][y] == BLANK:
                 return False
         return True
 
-    def removeCompleteLines(self):
+    def removeCompleteLines(self, board):
         # Remove any completed lines on the self.board, move everything above
         # them down, and return the number of complete lines.
         numLinesRemoved = 0
         y = BOARDHEIGHT - 1  # start y at the bottom of the self.board
         while y >= 0:
-            if self.isCompleteLine(y):
+            if self.isCompleteLine(board, y):
                 # Remove the line and pull boxes down by one line.
                 for pullDownY in range(y, 0, -1):
                     for x in range(BOARDWIDTH):
-                        self.board[x][pullDownY] = self.board[x][pullDownY - 1]
+                        board[x][pullDownY] = board[x][pullDownY - 1]
                 # Set very top line to blank.
                 for x in range(BOARDWIDTH):
-                    self.board[x][0] = BLANK
+                    board[x][0] = BLANK
                 numLinesRemoved += 1
                 # Note on the next iteration of the loop, y is the same.
                 # This is so that if the line that was pulled down is also
@@ -462,6 +399,90 @@ class GameState:
             else:
                 y -= 1  # move on to check next row up
         return numLinesRemoved
+
+    """
+
+        REWARD FUNCTIONS
+
+    """
+
+    def get_num_completed(self, board):
+        num_completed = 0
+
+        for y in range(0, BOARDHEIGHT):
+            if self.isCompleteLine(board, y):
+                num_completed += 1
+
+        return num_completed
+
+    def is_hole(self, board, x, y):
+        if board[x][y] != BLANK:
+            return False
+
+        for y2 in xrange(y - 1, -1, -1):
+            if board[x][y2] != BLANK:
+                return True
+
+        return False
+
+    def get_num_holes(self, board):
+        num_holes = 0
+
+        for y in range(0, BOARDHEIGHT):
+            for x in range(0, BOARDWIDTH):
+                if self.is_hole(board, x, y):
+                    num_holes += 1
+
+        return num_holes
+
+    def get_bumpiness(self, board):
+        bumpiness = 0
+        heights = []
+        columns_used = []
+
+        for x in range(BOARDWIDTH):
+            for y in range(BOARDHEIGHT):
+                if x in columns_used:
+                    continue
+
+                if board[x][y] != BLANK:
+                    heights.append(BOARDHEIGHT - y)
+                    columns_used.append(x)
+
+            if x not in columns_used:
+                heights.append(0)
+                columns_used.append(x)
+
+        for i in range(0, len(heights) - 1):
+            bumpiness += abs(heights[i] - heights[i + 1])
+
+        return bumpiness
+
+    def get_aggregate_height(self, board):
+        aggregate_height = 0
+        columns_used = []
+
+        for y in range(BOARDHEIGHT):
+            for x in range(BOARDWIDTH):
+                if x in columns_used:
+                    continue
+
+                if board[x][y] != BLANK:
+                    aggregate_height += BOARDHEIGHT - y
+                    columns_used.append(x)
+
+        return aggregate_height
+
+    """
+
+        PyGame Drawing Code
+    
+    
+    """
+
+    def makeTextObjs(self, text, font, color):
+        surf = font.render(text, True, color)
+        return surf, surf.get_rect()
 
     def convertToPixelCoords(self, boxx, boxy):
         # Convert the given xy coordinates of the self.board to xy
@@ -532,3 +553,27 @@ class GameState:
         DISPLAYSURF.blit(nextSurf, nextRect)
         # draw the "next" piece
         self.drawPiece(self.nextPiece, pixelx=WINDOWWIDTH - 120, pixely=100)
+
+if __name__ == '__main__':
+    game_state = GameState()
+
+    ai = HueristicAI(game_state, -0.153, 0.605, -0.645, -0.442)
+    for i in range(1000):
+        # game_state.frame_step(random.randint(0,5))
+
+        if game_state.fallingPiece:
+            # best_piece, score =  ai.getPieceMove(game_state.board, [game_state.fallingPiece, game_state.nextPiece])
+            best_piece, best_actions, score = ai.get_piece_move(game_state.board, [game_state.fallingPiece])
+
+            for best_action in best_actions:
+                game_state.frame_step(best_action)
+                time.sleep(.1)
+            # game_state.fallingPiece = best_piece
+
+            # print best_actions
+            # raw_input()
+
+            game_state.frame_step(0)
+        else: 
+            game_state.frame_step(0)
+        time.sleep(.1)

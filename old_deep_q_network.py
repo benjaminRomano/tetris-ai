@@ -8,7 +8,7 @@ from keras.optimizers import Adam
 
 import sys
 sys.path.append("Wrapped Game Code/")
-import wrappedTetris as game
+import tetris as game
 import random
 import numpy as np
 from collections import deque
@@ -145,7 +145,7 @@ def trainNetwork(network, readout, h_fc1, sess):
             x_t1 = np.asarray(x_t1, dtype='int')
             x_t1 = np.pad(x_t1, ((5,5), (0,0)), 'constant', constant_values=(0))
             x_t1 = np.reshape(x_t1, (20,20,1))
-            s_t1 = np.append(x_t1, s_t[:,:,0:3], axis = 2)
+            s_t1 = np.append(x_t1, s_t[:,:,0:max_rememberance_length-1], axis = 2)
 
             # store the transition in D
             D.append((s_t, a_t, r_t, s_t1, terminal))

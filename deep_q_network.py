@@ -7,12 +7,12 @@ from keras.layers.convolutional import Conv2D
 from keras.models import Model, Sequential
 from keras.optimizers import Adam
 
-import wrappedTetris as game
+import tetris as game
 from replay import ReplayMemory
 
 num_actions = 6
-state_space_shape = (10,20)
-observation_frames_length = 4
+state_space_shape = (6,10)
+observation_frames_length = 10
 
 model = Sequential()
 model.add(Conv2D(16, 2, activation='relu', input_shape=(state_space_shape[0], state_space_shape[1], observation_frames_length)))
@@ -22,6 +22,8 @@ model.add(Conv2D(32, (2,2), activation='relu'))
 model.add(Conv2D(64, (2,2), activation='relu'))
 
 model.add(Flatten())
+
+print model.output_shape
 
 model.add(Dense(87))
 model.add(Dense(num_actions))
@@ -54,7 +56,7 @@ while True:
     total_loss = 0
     total_acc = 0
     game_over = False
-    gameOverCount = 0
+    game_over_count = 0
     num_moves = 1
 
     while not game_over:
@@ -65,9 +67,9 @@ while True:
         board, reward_t1, game_over = game_state.frame_step(action_t1)
         board = np.asarray(board, dtype='int')
         board = np.reshape(board, (state_space_shape[0], state_space_shape[1], 1))
-        state_t2 = np.append(board, state_t1[:,:,0:3], axis = 2)
+        state_t2 = np.append(board, state_t1[:,:,0:observation_frames_length - 1], axis = 2)
 
-        reward_t1 = 0 if game_over else 1
+        # reward_t1 = 0 if game_over else 1
         
         replay_memory.save(state_t1.copy(), action_t1, reward_t1, state_t2.copy(), game_over)
 
@@ -89,7 +91,7 @@ while True:
         total_moves += 1
 
         if game_over:
-            gameOverCount += 1
+            game_over_count += 1
 
     moving_num_moves = np.roll(moving_num_moves, -1, axis=0)
     moving_num_moves[-1] = num_moves
@@ -97,7 +99,7 @@ while True:
 
     episode += 1
     
-    print 'Episode: {} | Moves: {} | Moving Average: {} | Epsilon: {} | Loss: {} | Acc: {} '\
-        .format(episode, num_moves, moving_average, epsilon(episode), total_loss / num_moves, total_acc / num_moves)
+    print 'Episode: {} | Moves: {} | Moving Average: {} | Epsilon: {} | Loss: {} | Acc: {} | Total Lines: {}'\
+        .format(episode, num_moves, moving_average, epsilon(episode), total_loss / num_moves, total_acc / num_moves, game_state.total_lines)
 
     model.save_weights('tetris' + '.save.h5', overwrite=True)
