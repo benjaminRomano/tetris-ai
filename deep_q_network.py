@@ -14,7 +14,6 @@ num_actions = 6
 state_space_shape = (6,10)
 observation_frames_length = 10
 numSeedGames = 1000
-num_hueristic_seeds = 5
 
 xState = Input(shape=(state_space_shape[0], state_space_shape[1], observation_frames_length))
 
@@ -50,12 +49,10 @@ model.load_weights('tetris.v1.1.save.good.h5')
 replay_memory = StratifiedReplayMemory(model, 3, discount=1.0)
 
 def epsilon(episode):
-    return 0
-    # return max(1.0 - (episode / float(numSeedGames)), 0.05)
+    return max(1.0 - (episode / float(numSeedGames)), 0.05)
 
 def numBatches(totalMoves):
-    # return max(1, int(math.floor(math.log(totalMoves / 32, 2))))
-    return 1
+    return max(1, int(math.floor(math.log(totalMoves / 32, 2))))
 
 total_moves = 1
 episode = 0

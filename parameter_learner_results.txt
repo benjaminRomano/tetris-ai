@@ -172,4 +172,3 @@ height_weight = -0.164981836474
 lines_weight = 0.653055059809
 holes_weight = -0.522589517819
 bumpiness_weight = -0.522685640091
-

@@ -559,21 +559,14 @@ if __name__ == '__main__':
 
     ai = HueristicAI(game_state, -0.153, 0.605, -0.645, -0.442)
     for i in range(1000):
-        # game_state.frame_step(random.randint(0,5))
-
         if game_state.fallingPiece:
-            # best_piece, score =  ai.getPieceMove(game_state.board, [game_state.fallingPiece, game_state.nextPiece])
-            best_piece, best_actions, score = ai.get_piece_move(game_state.board, [game_state.fallingPiece])
+            best_piece, best_actions, score = ai.get_piece_move(game_state.board, [game_state.fallingPiece, game_state.nextPiece])
 
             for best_action in best_actions:
                 game_state.frame_step(best_action)
-                time.sleep(.1)
-            # game_state.fallingPiece = best_piece
-
-            # print best_actions
-            # raw_input()
+                #time.sleep(.1)
 
             game_state.frame_step(0)
         else: 
             game_state.frame_step(0)
-        time.sleep(.1)
+        #time.sleep(.1)
