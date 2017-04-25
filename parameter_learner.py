@@ -119,7 +119,7 @@ class ParameterLearner():
                     score = game_state.score
 
                     if game_state.fallingPiece:
-                        best_piece, _, _ = ai.get_piece_move(game_state.board, [game_state.fallingPiece, game_state.nextPiece])
+                        best_piece, _, _ = ai.get_piece_move(game_state.board, [game_state.fallingPiece])
 
                         game_state.fallingPiece = best_piece
                         _, _, terminal = game_state.frame_step(0)
@@ -169,6 +169,6 @@ class ParameterLearner():
 
 if __name__ == '__main__':
     parameter_learner = ParameterLearner()
-    winner = parameter_learner.tune(num_of_games=3, max_num_of_moves=200)
+    winner = parameter_learner.tune(num_of_games=3, max_num_of_moves=500)
 
     winner.display()

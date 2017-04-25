@@ -1,6 +1,9 @@
+# Written by Chris Caruso
+# Released under a "MIT" license
 
 import numpy as np
 
+# Note: This is a direct implementation of Replay Memory from "Playing Atari with Deep Reinforcement Learning"
 class ReplayMemory():
 
     def __init__(self, model, batchSize=32, stateToBatchTransform=None, maxSize=25000, discount=0.95):
@@ -72,6 +75,7 @@ class ReplayMemory():
                                 
         return xInputs, yTargets
 
+# Note: This is an extension using "Accelerating Minibatch Stochastic Gradient Descent using Stratified Sampling"
 class StratifiedReplayMemory():
 
     def __init__(self, model, numStratifications, batchSize=32, stateToBatchTransform=None, maxSize=25000, discount=0.95):

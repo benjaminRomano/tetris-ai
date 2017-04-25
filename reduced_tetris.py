@@ -14,8 +14,8 @@ FPS = 25
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
 BOXSIZE = 20
-BOARDWIDTH = 10
-BOARDHEIGHT = 20
+BOARDWIDTH = 6
+BOARDHEIGHT = 10
 BLANK = '.'
 
 MOVESIDEWAYSFREQ = 0.15
@@ -45,118 +45,51 @@ COLORS = (BLUE,      GREEN,      RED,      YELLOW)
 LIGHTCOLORS = (LIGHTBLUE, LIGHTGREEN, LIGHTRED, LIGHTYELLOW)
 assert len(COLORS) == len(LIGHTCOLORS)  # each color must have light color
 
-TEMPLATEWIDTH = 5
-TEMPLATEHEIGHT = 5
+TEMPLATEWIDTH = 2
+TEMPLATEHEIGHT = 2
 
-S_SHAPE_TEMPLATE = [['..OO.',
-                     '.OO..',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..OO.',
-                     '...O.',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_1 = [['O.',
+                     '..'],
+                    ['..',
+                     'O.'],
+                    ['..',
+                     '.O'],
+                    ['.O',
+                     '..']]
 
-Z_SHAPE_TEMPLATE = [['.OO..',
-                     '..OO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '.OO..',
-                     '.O...',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_2 = [['OO',
+                     'OO']]
 
-I_SHAPE_TEMPLATE = [['..O..',
-                     '..O..',
-                     '..O..',
-                     '..O..',
-                     '.....'],
-                    ['OOOO.',
-                     '.....',
-                     '.....',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_3 = [['OO',
+                     '..'],
+                    ['O.',
+                     'O.'],
+                    ['..',
+                     'OO'],
+                    ['.O',
+                     '.O']]
 
-O_SHAPE_TEMPLATE = [['.OO..',
-                     '.OO..',
-                     '.....',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_4 = [['.O',
+                     'O.'],
+                    ['O.',
+                     '.O']]
 
-J_SHAPE_TEMPLATE = [['.O...',
-                     '.OOO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..OO.',
-                     '..O..',
-                     '..O..',
-                     '.....',
-                     '.....'],
-                    ['.OOO.',
-                     '...O.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..O..',
-                     '.OO..',
-                     '.....',
-                     '.....']]
+SHAPE_TEMPLATE_5 = [['OO',
+                     'O.'],
+                    ['O.',
+                     'OO'],
+                    ['.O',
+                     'OO'],
+                    ['OO',
+                     '.O']]
 
-L_SHAPE_TEMPLATE = [['...O.',
-                     '.OOO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..O..',
-                     '..OO.',
-                     '.....',
-                     '.....'],
-                    ['.OOO.',
-                     '.O...',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['.OO..',
-                     '..O..',
-                     '..O..',
-                     '.....',
-                     '.....']]
 
-T_SHAPE_TEMPLATE = [['..O..',
-                     '.OOO.',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '..OO.',
-                     '..O..',
-                     '.....',
-                     '.....'],
-                    ['.OOO.',
-                     '..O..',
-                     '.....',
-                     '.....',
-                     '.....'],
-                    ['..O..',
-                     '.OO..',
-                     '..O..',
-                     '.....',
-                     '.....']]
+PIECES = {'1': SHAPE_TEMPLATE_1,
+          '2': SHAPE_TEMPLATE_2,
+          '3': SHAPE_TEMPLATE_3,
+          '4': SHAPE_TEMPLATE_4,
+          '5': SHAPE_TEMPLATE_5}
 
-PIECES = {'S': S_SHAPE_TEMPLATE,
-          'Z': Z_SHAPE_TEMPLATE,
-          'J': J_SHAPE_TEMPLATE,
-          'L': L_SHAPE_TEMPLATE,
-          'I': I_SHAPE_TEMPLATE,
-          'O': O_SHAPE_TEMPLATE,
-          'T': T_SHAPE_TEMPLATE}
 class GameState:
 
     """
@@ -280,7 +213,7 @@ class GameState:
 
                 board_image = self.get_board_image()
 
-                reward = -100
+                reward = -5
                 
                 self.reinit()
                 return board_image, reward, terminal
@@ -321,18 +254,7 @@ class GameState:
             self.lines += cleared
             self.total_lines += cleared
 
-            # reward = self.height - self.get_aggregate_height(self.board) + cleared
-
-            reward = 0
-            if cleared == 1:
-                reward = 100
-            elif cleared == 2:
-                reward = 300
-            elif cleared == 3:
-                reward = 400
-            elif cleared == 4:
-                reward = 800
-
+            reward = self.height - self.get_aggregate_height(self.board) + cleared
             self.height = self.get_aggregate_height(self.board)
 
             self.level, self.fallFreq = self.calculateLevelAndFallFreq()
@@ -634,7 +556,8 @@ class GameState:
 
 if __name__ == '__main__':
     game_state = GameState()
-    ai = HueristicAI(game_state, -0.823, 0.143, -0.461, -0.298)
+
+    ai = HueristicAI(game_state, -0.153, 0.605, -0.645, -0.442)
     for i in range(1000):
         # game_state.frame_step(random.randint(0,5))
 
@@ -644,7 +567,7 @@ if __name__ == '__main__':
 
             for best_action in best_actions:
                 game_state.frame_step(best_action)
-                #time.sleep(.1)
+                time.sleep(.1)
             # game_state.fallingPiece = best_piece
 
             # print best_actions
@@ -653,4 +576,4 @@ if __name__ == '__main__':
             game_state.frame_step(0)
         else: 
             game_state.frame_step(0)
-        #time.sleep(.1)
+        time.sleep(.1)
